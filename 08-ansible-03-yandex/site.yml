@@ -1,3 +1,4 @@
+---
 - name: Install Clickhouse on Ubuntu
   hosts: clickhouse
   become: true
@@ -54,3 +55,79 @@
 
   tags:
     - clickhouse
+
+# ===================================================================
+# Play: Установка Lighthouse через Nginx (для Ubuntu)
+# ===================================================================
+
+- name: Install and configure Lighthouse
+  hosts: lighthouse
+  become: true
+  vars:
+    lighthouse_repo: https://github.com/VKCOM/lighthouse.git
+    lighthouse_path: /var/www/lighthouse
+    nginx_vhost: /etc/nginx/sites-available/lighthouse
+    nginx_link: /etc/nginx/sites-enabled/lighthouse
+
+  handlers:
+    - name: Reload Nginx
+      systemd:
+        name: nginx
+        state: reloaded
+
+    - name: Restart Nginx
+      systemd:
+        name: nginx
+        state: restarted
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+
+    - name: Ensure web root directory exists
+      file:
+        path: "{{ lighthouse_path }}"
+        state: directory
+        recurse: yes
+
+    - name: Clone Lighthouse repository
+      git:
+        repo: "{{ lighthouse_repo }}"
+        dest: "{{ lighthouse_path }}"
+        version: HEAD
+        clone: yes
+        update: yes
+
+    - name: Template Nginx config for Lighthouse
+      template:
+        src: templates/lighthouse.conf.j2
+        dest: "{{ nginx_vhost }}"
+      notify: Reload Nginx
+
+    - name: Enable Lighthouse site in Nginx
+      file:
+        src: "{{ nginx_vhost }}"
+        dest: "{{ nginx_link }}"
+        state: link
+      notify: Reload Nginx
+
+    - name: Disable default Nginx site
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Reload Nginx
+
+    - name: Ensure Nginx is started and enabled
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
+
+  tags:
+    - lighthouse

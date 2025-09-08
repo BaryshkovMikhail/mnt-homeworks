@@ -1,4 +1,4 @@
-# Домашнее задание к занятию 3 «Использование Ansible»
+# Домашнее задание к занятию 3 «Использование Ansible» - Барышков Михаил
 
 ## Подготовка к выполнению
 
@@ -25,3 +25,38 @@
 Выполненное домашнее задание пришлите в виде ссылки на .md-файл в вашем репозитории.
 
 ---
+
+
+# Решение
+
+Ansible Playbook: Clickhouse + Lighthouse
+
+Этот playbook настраивает:
+- Clickhouse — аналитическую СУБД
+- Lighthouse — веб-интерфейс для просмотра логов (через Nginx)
+- Поддержка Ubuntu 20.04/22.04
+
+## Структура
+
+- `site.yml` — основной playbook
+- `inventory/prod.yml` — инвентарь
+- `group_vars/clickhouse/vars.yml` — переменные Clickhouse
+- `templates/lighthouse.conf.j2` — шаблон Nginx
+
+## Clickhouse
+- `clickhouse_version`: версия пакета (по умолчанию `22.3.3.44`)
+
+## Lighthouse (в play)
+- `lighthouse_repo`: URL репозитория
+- `lighthouse_path`: путь к статике
+- `nginx_vhost`, `nginx_link`: пути к конфигу Nginx
+
+## Теги
+- `clickhouse` — только установка Clickhouse
+- `lighthouse` — только установка Lighthouse
+
+
+![img1](img/img1.png)
+![img2](img/img2.png)
+![img3](img/img3.png)
+![img4](img/img4.png)
