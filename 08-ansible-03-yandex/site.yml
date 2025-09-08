@@ -1,95 +1,56 @@
-# site.yml
----
-- name: Install Clickhouse
+- name: Install Clickhouse on Ubuntu
   hosts: clickhouse
-  tags:
-    - clickhouse
-  handlers:
-    - name: Start clickhouse service
-      become: true
-      ansible.builtin.service:
-        name: clickhouse-server
-        state: restarted
-  tasks:
-    - block:
-        - name: Get clickhouse distrib
-          ansible.builtin.get_url:
-            url: "https://packages.clickhouse.com/rpm/stable/{{ item }}-{{ clickhouse_version }}.noarch.rpm"
-            dest: "/tmp/{{ item }}-{{ clickhouse_version }}.rpm"
-            timeout: 60
-          loop: "{{ clickhouse_packages }}"
-      rescue:
-        - name: Get clickhouse common static distrib
-          ansible.builtin.get_url:
-            url: "https://packages.clickhouse.com/rpm/stable/clickhouse-common-static-{{ clickhouse_version }}.x86_64.rpm"
-            dest: "/tmp/clickhouse-common-static-{{ clickhouse_version }}.rpm"
-            timeout: 60
-    - name: Install clickhouse packages
-      become: true
-      ansible.builtin.yum:
-        name:
-          - "/tmp/clickhouse-common-static-{{ clickhouse_version }}.rpm"
-          - "/tmp/clickhouse-client-{{ clickhouse_version }}.rpm"
-          - "/tmp/clickhouse-server-{{ clickhouse_version }}.rpm"
-        state: present
-      notify: Start clickhouse service
-    - name: Flush handlers
-      meta: flush_handlers
-    - name: Create database
-      ansible.builtin.command: "clickhouse-client -q 'CREATE DATABASE IF NOT EXISTS logs;'"
-      register: create_db
-      changed_when: create_db.rc == 0
-
-# --- Play для Lighthouse ---
-- name: Install and configure Lighthouse
-  hosts: lighthouse
   become: true
-  vars:
-    nginx_vhost_path: /etc/nginx/conf.d/lighthouse.conf
-    lighthouse_root: /var/www/lighthouse
-    lighthouse_repo: https://github.com/VKCOM/lighthouse.git
-    lighthouse_static: /var/www/lighthouse/lighthouse
-
-  handlers:
-    - name: Restart nginx
-      service:
-        name: nginx
-        state: restarted
+  vars_files:
+    - group_vars/clickhouse/vars.yml
 
   tasks:
-    - name: Install EPEL repository (for CentOS/AlmaLinux)
-      yum:
-        name: epel-release
+    - name: Install required system packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - dirmngr
+          - gnupg
         state: present
-      tags: lighthouse
-    - name: Install Nginx
-      yum:
-        name: nginx
+        update_cache: yes
+
+    - name: Add Clickhouse GPG key via keyserver
+      ansible.builtin.apt_key:
+        keyserver: hkp://keyserver.ubuntu.com:80
+        id: 8919F6BD2B48D754
         state: present
-      tags: lighthouse
 
-    - name: Ensure web root directory exists
-      file:
-        path: "{{ lighthouse_root }}"
-        state: directory
-        recurse: yes
+    - name: Add Clickhouse APT repository
+      ansible.builtin.apt_repository:
+        repo: "deb https://packages.clickhouse.com/deb stable main"
+        state: present
+        filename: clickhouse
 
-    - name: Clone Lighthouse repository
-      git:
-        repo: "{{ lighthouse_repo }}"
-        dest: "{{ lighthouse_root }}"
-        version: HEAD
-        clone: yes
-        update: yes
+    - name: Update package list
+      apt:
+        update_cache: yes
 
-    - name: Template Nginx config for Lighthouse
-      template:
-        src: templates/lighthouse.conf.j2
-        dest: "{{ nginx_vhost_path }}"
-      notify: Restart nginx
+    - name: Install Clickhouse packages
+      apt:
+        name:
+          - clickhouse-server
+          - clickhouse-client
+        state: present
 
-    - name: Ensure Nginx is started and enabled
-      service:
-        name: nginx
+    - name: Ensure Clickhouse service is enabled and running
+      systemd:
+        name: clickhouse-server
         state: started
         enabled: yes
+
+    - name: Create database logs
+      command: clickhouse-client -q 'CREATE DATABASE IF NOT EXISTS logs;'
+      register: create_db
+      changed_when: create_db.rc == 0
+      retries: 5
+      delay: 3
+      until: create_db is succeeded
+
+  tags:
+    - clickhouse
