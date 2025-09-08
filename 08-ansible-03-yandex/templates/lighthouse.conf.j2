@@ -1,0 +1,14 @@
+# templates/lighthouse.conf.j2
+server {
+    listen 80;
+    server_name _;
+
+    location / {
+        root /var/www/lighthouse/lighthouse;
+        index index.html;
+        try_files $uri $uri/ =404;
+    }
+
+    error_log /var/log/nginx/lighthouse_error.log;
+    access_log /var/log/nginx/lighthouse_access.log;
+}

@@ -1,0 +1,16 @@
+# inventory/prod.yml
+---
+clickhouse:
+  hosts:
+    clickhouse-01:
+      ansible_host: <IP_clickhouse>
+
+vector:
+  hosts:
+    vector-01:
+      ansible_host: <IP_vector>
+
+lighthouse:
+  hosts:
+    lighthouse-01:
+      ansible_host: <IP_lighthouse>
