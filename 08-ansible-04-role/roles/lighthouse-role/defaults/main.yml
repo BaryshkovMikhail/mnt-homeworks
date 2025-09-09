@@ -1,0 +1,5 @@
+---
+lighthouse_repo: https://github.com/VKCOM/lighthouse.git
+lighthouse_path: /var/www/lighthouse
+nginx_vhost: /etc/nginx/sites-available/lighthouse
+nginx_link: /etc/nginx/sites-enabled/lighthouse

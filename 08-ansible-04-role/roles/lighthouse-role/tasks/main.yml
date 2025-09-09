@@ -1,0 +1,57 @@
+# lighthouse-role/tasks/main.yml
+---
+- name: Update apt cache
+  become: true
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Install Nginx
+  become: true
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+
+- name: Ensure web root directory exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ lighthouse_path }}"
+    state: directory
+    recurse: yes
+
+- name: Clone Lighthouse repository
+  become: true
+  ansible.builtin.git:
+    repo: "{{ lighthouse_repo }}"
+    dest: "{{ lighthouse_path }}"
+    version: HEAD
+    clone: yes
+    update: yes
+
+- name: Template Nginx config
+  become: true
+  ansible.builtin.template:
+    src: lighthouse.conf.j2
+    dest: "{{ nginx_vhost }}"
+  notify: Reload Nginx
+
+- name: Enable Nginx site
+  become: true
+  ansible.builtin.file:
+    src: "{{ nginx_vhost }}"
+    dest: "{{ nginx_link }}"
+    state: link
+  notify: Reload Nginx
+
+- name: Disable default site
+  become: true
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Reload Nginx
+
+- name: Ensure Nginx is started and enabled
+  become: true
+  ansible.builtin.systemd:
+    name: nginx
+    state: started
+    enabled: yes
