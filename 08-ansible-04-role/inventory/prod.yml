@@ -1,0 +1,18 @@
+# inventory/prod.yml
+---
+clickhouse:
+  hosts:
+    clickhouse-01:
+      ansible_host: 89.169.181.145
+      ansible_python_interpreter: /usr/bin/python3
+vector:
+  hosts:
+    vector-01:
+      ansible_host: 84.201.179.70
+      ansible_python_interpreter: /usr/bin/python3
+
+lighthouse:
+  hosts:
+    lighthouse-01:
+      ansible_host: 84.201.136.131
+      ansible_python_interpreter: /usr/bin/python3
