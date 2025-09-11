@@ -1,0 +1,34 @@
+---
+- name: Detect OS Family
+  raw: |
+    if grep -q 'ID=oracle\|ID=centos\|ID=rhel' /etc/os-release; then
+      echo "RedHat";
+    elif grep -q 'ID=ubuntu\|ID=debian' /etc/os-release; then
+      echo "Debian";
+    else
+      echo "Unknown";
+    fi | tr -d '\n\r'
+  register: os_family_result
+  changed_when: false
+
+- name: Set ansible_os_family fact
+  set_fact:
+    ansible_os_family: "{{ os_family_result.stdout }}"
+
+- name: Check if Vector is already installed
+  raw: which vector && echo "installed" || echo "not installed"
+  register: vector_installed
+  changed_when: false
+
+- name: Install Vector via official script
+  become: true
+  when: 
+    - ansible_os_family in ["Debian", "RedHat"]
+    - "'not installed' in vector_installed.stdout"
+  shell: |
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.vector.dev | sh
+  args:
+    executable: /bin/bash
+  environment:
+    CARGO_HOME: /usr/local/cargo
+    PATH: "/usr/local/cargo/bin:{{ ansible_env.PATH }}"

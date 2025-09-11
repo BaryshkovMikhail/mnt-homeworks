@@ -1,0 +1,15 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: no
+  pre_tasks:
+    - name: Ensure Python is installed
+      raw: |
+        if command -v yum; then
+          yum install -y python3;
+        elif command -v apt; then
+          apt update && apt install -y python3;
+        fi
+      changed_when: false
+  roles:
+    - role: ../../..

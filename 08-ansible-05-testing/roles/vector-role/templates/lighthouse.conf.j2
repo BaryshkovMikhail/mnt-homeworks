@@ -1,0 +1,13 @@
+server {
+    listen 80;
+    server_name _;
+
+    location / {
+        root {{ lighthouse_path }};
+        index index.html;
+        try_files $uri $uri/ =404;
+    }
+
+    error_log /var/log/nginx/lighthouse_error.log;
+    access_log /var/log/nginx/lighthouse_access.log;
+}

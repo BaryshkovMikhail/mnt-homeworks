@@ -1,0 +1,21 @@
+galaxy_info:
+  author: your name
+  description: your role description
+  company: your company (optional)
+  namespace: local
+  role_name: vector_role
+  license: MIT
+  min_ansible_version: "2.10"
+
+  platforms:
+    - name: Ubuntu
+    - name: OracleLinux
+    - name: Debian
+
+
+  galaxy_tags:
+    - monitoring
+    - logging
+    - vector
+
+dependencies: []

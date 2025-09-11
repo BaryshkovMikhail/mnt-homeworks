@@ -1,0 +1,73 @@
+---
+- name: Verify Vector
+  hosts: all
+  gather_facts: no
+  pre_tasks:
+    - name: Ensure Python is installed
+      raw: |
+        if command -v yum; then
+          yum install -y python3;
+        elif command -v apt; then
+          apt update && apt install -y python3;
+        fi
+      changed_when: false
+
+  tasks:
+    - name: Check vector binary exists
+      raw: which vector || echo "not found"
+      register: vector_binary
+      changed_when: false
+      ignore_errors: yes
+
+    - name: Assert vector binary exists
+      assert:
+        that:
+          - "'not found' not in vector_binary.stdout"
+          - vector_binary.rc == 0
+      error: "Vector binary not found"
+
+    - name: Create minimal config for validation
+      raw: |
+        mkdir -p /etc/vector && \
+        echo 'sources.in = { type = "stdin" }' > /etc/vector/vector.toml
+      changed_when: false
+
+    - name: Validate vector config
+      raw: vector validate --config /etc/vector/vector.toml
+      register: validate_result
+      changed_when: false
+      ignore_errors: yes
+
+    - name: Assert vector config is valid
+      assert:
+        that:
+          - validate_result.rc == 0
+        fail_msg: "Vector config validation failed"
+        success_msg: "Vector config is valid"
+
+    - name: Check if vector service is active (if systemd available)
+      raw: systemctl is-active vector
+      register: vector_service
+      changed_when: false
+      ignore_errors: yes
+
+    - name: Assert vector service is running
+      assert:
+        that:
+          - vector_service.stdout in ['active', 'running']
+        fail_msg: "Vector service is not running"
+        success_msg: "Vector service is active"
+      when: vector_service.rc == 0
+
+    - name: Check if vector process is running
+      raw: ps aux | grep -v grep | grep vector
+      register: vector_process
+      changed_when: false
+      ignore_errors: yes
+
+    - name: Assert vector process is running
+      assert:
+        that:
+          - vector_process.rc == 0
+        fail_msg: "No running vector process found"
+        success_msg: "Vector process is running"

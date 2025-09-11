@@ -1,0 +1,11 @@
+---
+- name: Reload Nginx
+  service:
+    name: nginx
+    state: reloaded
+  when: not ansible_virtualization_type == "docker"
+
+- name: Restart Nginx
+  systemd:
+    name: nginx
+    state: restarted

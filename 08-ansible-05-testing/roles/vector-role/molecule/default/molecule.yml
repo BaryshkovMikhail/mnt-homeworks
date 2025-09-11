@@ -1,0 +1,24 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+  options:
+    docker_host: "unix://var/run/docker.sock"
+platforms:
+  - name: instance-oraclelinux
+    image: oraclelinux:8
+    pre_build_image: false
+    dockerfile: Dockerfile-oraclelinux.j2
+ 
+
+  - name: instance-ubuntu
+    image: ubuntu:latest
+    pre_build_image: false
+    dockerfile: Dockerfile-ubuntu.j2
+
+
+provisioner:
+  name: ansible
+  log: True
+

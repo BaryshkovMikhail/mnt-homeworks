@@ -48,3 +48,155 @@
 ### Как оформить решение задания
 
 Выполненное домашнее задание пришлите в виде ссылки на .md-файл в вашем репозитории.
+
+
+## Решение
+
+### Molecule
+1. ![img1](img/img1.png)
+2. ![img2](img/img2.png)
+3.  Отредактировал **molecule/default/molecule.yml**, чтобы использовать разные образы:
+
+```yaml
+# molecule/default/molecule.yml
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+  options:
+    docker_host: "unix://var/run/docker.sock"
+platforms:
+  - name: instance-oraclelinux
+    image: oraclelinux:8
+    pre_build_image: false
+    dockerfile: Dockerfile-oraclelinux.j2
+ 
+
+  - name: instance-ubuntu
+    image: ubuntu:latest
+    pre_build_image: false
+    dockerfile: Dockerfile-ubuntu.j2
+
+
+provisioner:
+  name: ansible
+  log: True
+
+```
+
+**converge.yml**
+
+```yaml
+# molecule/default/converge.yml
+---
+- name: Converge
+  hosts: all
+  gather_facts: no
+  pre_tasks:
+    - name: Ensure Python is installed
+      raw: |
+        if command -v yum; then
+          yum install -y python3;
+        elif command -v apt; then
+          apt update && apt install -y python3;
+        fi
+      changed_when: false
+  roles:
+    - role: ../../..
+
+```
+![img4](img/img4.png)
+![img5](img/img5.png)
+![img6](img/img6.png)
+![img7](img/img7.png)
+![img8](img/img8.png)
+![img9](img/img9.png)
+
+4. Добавление **verify.yml** с assert-ами
+
+```yaml
+# molecule/default/verify.yml
+---
+- name: Verify Vector
+  hosts: all
+  gather_facts: no
+  pre_tasks:
+    - name: Ensure Python is installed
+      raw: |
+        if command -v yum; then
+          yum install -y python3;
+        elif command -v apt; then
+          apt update && apt install -y python3;
+        fi
+      changed_when: false
+
+  tasks:
+    - name: Check vector binary exists
+      raw: which vector || echo "not found"
+      register: vector_binary
+      changed_when: false
+      ignore_errors: yes
+
+    - name: Assert vector binary exists
+      assert:
+        that:
+          - "'not found' not in vector_binary.stdout"
+          - vector_binary.rc == 0
+      error: "Vector binary not found"
+
+    - name: Create minimal config for validation
+      raw: |
+        mkdir -p /etc/vector && \
+        echo 'sources.in = { type = "stdin" }' > /etc/vector/vector.toml
+      changed_when: false
+
+    - name: Validate vector config
+      raw: vector validate --config /etc/vector/vector.toml
+      register: validate_result
+      changed_when: false
+      ignore_errors: yes
+
+    - name: Assert vector config is valid
+      assert:
+        that:
+          - validate_result.rc == 0
+        fail_msg: "Vector config validation failed"
+        success_msg: "Vector config is valid"
+
+    - name: Check if vector service is active (if systemd available)
+      raw: systemctl is-active vector
+      register: vector_service
+      changed_when: false
+      ignore_errors: yes
+
+    - name: Assert vector service is running
+      assert:
+        that:
+          - vector_service.stdout in ['active', 'running']
+        fail_msg: "Vector service is not running"
+        success_msg: "Vector service is active"
+      when: vector_service.rc == 0
+
+    - name: Check if vector process is running
+      raw: ps aux | grep -v grep | grep vector
+      register: vector_process
+      changed_when: false
+      ignore_errors: yes
+
+    - name: Assert vector process is running
+      assert:
+        that:
+          - vector_process.rc == 0
+        fail_msg: "No running vector process found"
+        success_msg: "Vector process is running"
+```
+
+5. ![img10](img/img10.png)
+![img11](img/img11.png)
+
+
+
+
+
+

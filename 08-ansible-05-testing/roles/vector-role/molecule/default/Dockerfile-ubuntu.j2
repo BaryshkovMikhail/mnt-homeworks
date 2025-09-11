@@ -1,0 +1,5 @@
+FROM ubuntu:latest
+RUN apt update && \
+    apt install -y python3 sudo curl ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+CMD ["sleep", "infinity"]
