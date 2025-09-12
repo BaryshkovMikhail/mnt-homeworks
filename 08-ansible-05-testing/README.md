@@ -196,7 +196,84 @@ provisioner:
 ![img11](img/img11.png)
 
 
+# TOX
+
+2. ![img12](img/img12.png)
+3. ![img13](img/img13.png)
+4. ![img14](img/img14.png)
+5. ![img15](img/img15.png)
+![img16](img/img16.png)
+![img17](img/img17.png)
+![img18](img/img18.png)
+![img19](img/img19.png)
+
+**Ошибка cgroups (cgroup.subtree_control: Operation not supported) — это известная проблема Podman в контейнере.**
+
+writing file /sys/fs/cgroup/cgroup.subtree_control: Operation not supported
+
+```bash
+error running container: error from /usr/bin/crun creating container for [...]: writing file `/sys/fs/cgroup/cgroup.subtree_control`: Operation not supported
+```
+
+🔁 Вывод: 
+
+❌ Нельзя использовать podman в этом окружении — слишком много ограничений
+❌ Конфликт версий в tox.ini: старый Ansible + новый Molecule = ошибка
 
 
+✅ Решение: Переключиться на Docker как драйвер + исправить зависимости 
+
+Мы уже внутри Docker-контейнера → используем Docker-in-Docker (DinD) через сокет.
+
+```
+docker run --privileged \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /home/woland/git/homework/ansible/mnt-homeworks/08-ansible-05-testing:/opt/vector-role \
+  -w /opt/vector-role/roles/vector-role \
+  -it aragast/netology:latest /bin/bash
+```
+🔥 Ключевое: -v /var/run/docker.sock:/var/run/docker.sock
+
+Без этого Molecule не сможет управлять Docker.
+
+Обновим tox-requirements.txt
+
+```
+# tox-requirements.txt
+molecule[docker]
+jmespath
+selinux
+lxml
+```
+
+Обновите tox.ini
+
+```
+[tox]
+minversion = 3.0
+envlist = py39-molecule
+skipsdist = true
+
+[testenv]
+setenv =
+    DOCKER_HOST = unix:///var/run/docker.sock
+passenv =
+    HOME
+    TERM
+    DOCKER_*
+    MOLECULE_*
+deps =
+    ansible>=7.0.0
+    molecule==6.0.3
+    molecule-docker==1.1.0
+    docker
+commands =
+    molecule test -s compatibility --destroy always
+```
+
+Ошибка 
+Error while fetching server API version: Not supported URL scheme http+docker
+
+— это известный баг в molecule-docker, который не удаётся решить в контейнере aragast/netology:latest из-за несовместимости версий, устаревшего SDK и жёстко закодированного поведения драйвера.
 
 

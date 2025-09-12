@@ -21,7 +21,7 @@
   changed_when: false
 
 - name: Install Vector via official script
-  become: true
+  #become: true
   when: 
     - ansible_os_family in ["Debian", "RedHat"]
     - "'not installed' in vector_installed.stdout"

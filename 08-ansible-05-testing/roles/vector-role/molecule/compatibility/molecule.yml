@@ -3,12 +3,16 @@ dependency:
   name: galaxy
 driver:
   name: docker
+  options:
+    docker_host: unix:///var/run/docker.sock
 platforms:
   - name: instance-ubuntu
     image: ubuntu:latest
-    pre_build_image: false               # ← важно: false, чтобы использовался свой Dockerfile
-    dockerfile: Dockerfile-ubuntu.j2     # ← указываем явно
+    pre_build_image: false
+    dockerfile: Dockerfile-ubuntu.j2
     privileged: true
+    volumes:
+      - /lib/modules:/lib/modules:ro
 
 provisioner:
   name: ansible

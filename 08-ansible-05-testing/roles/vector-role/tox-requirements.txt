@@ -1,0 +1,6 @@
+# tox-requirements.txt
+molecule[docker]
+jmespath
+selinux
+lxml
+
