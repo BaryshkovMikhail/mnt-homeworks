@@ -1,0 +1,18 @@
+galaxy_info:
+  author: Your Name
+  description: A role that uses my_own_module to create files
+  license: GPL-3.0-or-later
+  min_ansible_version: "2.9"
+  platforms:
+    - name: Fedora
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all
+    - name: CentOS
+      versions:
+        - all
+  galaxy_tags:
+    - files
+    - custom-module

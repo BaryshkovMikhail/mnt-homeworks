@@ -1,0 +1,9 @@
+---
+- name: Test my_own_module with single task
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Create file using my_own_module
+      my_own_module:
+        path: /tmp/playbook_test.txt
+        content: "Файл создан через single-task playbook!"

@@ -1,0 +1,11 @@
+namespace: my_own_namespace
+name: yandex_cloud_elk
+version: 1.0.0
+readme: README.md
+authors:
+  - Baryshkov Mikhail (@BaryshkovMikhail)
+description: Custom Ansible collection with my_own_module for creating files and my_own_role for easy reuse.
+license: GPL-3.0-or-later
+repository: https://github.com/BaryshkovMikhail/my_own_collection
+homepage: https://github.com/BaryshkovMikhail/my_own_collection
+issues: https://github.com/BaryshkovMikhail/my_own_collection/issues
