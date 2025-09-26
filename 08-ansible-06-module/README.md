@@ -212,3 +212,7 @@ if __name__ == '__main__':
 ![img2](img/img2.png)
 5. ![img3](img/img3.png)
 6. ![img4](img/img4.png)
+---
+14. ![img5](img/img5.png)
+15. 16. ![img6](img/img6.png)
+![img7](img/img7.png)
