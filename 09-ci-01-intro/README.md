@@ -43,3 +43,23 @@
 Выполненное домашнее задание пришлите в виде ссылки на .md-файл в вашем репозитории.
 
 ---
+
+## Решение
+
+![img](img/img1.png)
+![img](img/img2.png)
+![img](img/img3.png)
+![img](img/img4.png)
+![img](img/img5.png)
+![img](img/img6.png)
+![img](img/img7.png)
+![img](img/img8.png)
+![img](img/img9.png)
+![img](img/img10.png)
+![img](img/img11.png)
+![img](img/img12.png)
+![img](img/img13.png)
+![img](img/img14.png)
+
+Почему то мои задачи не попадали в спринт, поэтому я не смог его запустить.
+Колонки у меня настроены, в самих задачах спринт добавлен. 
