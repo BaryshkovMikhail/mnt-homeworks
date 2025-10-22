@@ -1,4 +1,4 @@
-# Домашнее задание к занятию 14 «Средство визуализации Grafana»
+# Домашнее задание к занятию 14 «Средство визуализации Grafana» -Барышков Миахил
 
 ## Задание повышенной сложности
 
@@ -60,3 +60,52 @@
 Выполненное домашнее задание пришлите в виде ссылки на .md-файл в вашем репозитории.
 
 ---
+
+### Решение 1
+
+![img1](img/img1.png)
+
+## Решение 2
+![img2](img/img2.png)
+
+1. Утилизация CPU (в процентах, 100 – idle)
+
+```promql
+100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+```
+
+2. CPU Load Average (1/5/15 минут)
+
+
+```promql
+node_load1
+node_load5
+node_load15
+```
+
+3. Количество свободной оперативной памяти
+
+```promql
+node_memory_MemFree_bytes
+```
+
+4. Свободное место на файловой системе
+
+```promql
+node_filesystem_free_bytes{fstype=~"ext4|xfs", mountpoint!~"/(dev|proc|sys|run).*"}
+```
+
+Если вы хотите процент свободного места, используйте:
+
+```promql
+(node_filesystem_free_bytes{fstype=~"ext4|xfs", mountpoint!~"/(dev|proc|sys|run).*"} 
+/ 
+node_filesystem_size_bytes{fstype=~"ext4|xfs", mountpoint!~"/(dev|proc|sys|run).*"}) * 100
+```
+## Решение 3
+
+![img3](img/img3.png)
+
+## Решение 4
+
+[Дашборд JSON](dashbord.json)
