@@ -1,12 +1,4 @@
-##Предварительно выполнить на Linux хосте команду: sudo sysctl -w vm.max_map_count=262144
-##https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#_set_vm_max_map_count_to_at_least_262144
-#
-##kibana address: http://127.0.0.1:5601 будет доступно через ~1-2 мин
-#
-#
-version: '2.2'
 services:
-
   es-hot:
     image: elasticsearch:8.7.0
     container_name: es-hot
@@ -15,7 +7,7 @@ services:
       - cluster.name=es-docker-cluster
       - discovery.seed_hosts=es-hot,es-warm
       - cluster.initial_master_nodes=es-hot,es-warm
-      - node.roles=master,data_content,data_hot  
+      - node.roles=master,data_content,data_hot
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - "http.host=0.0.0.0"
       - xpack.security.enabled=false
@@ -32,8 +24,12 @@ services:
       - 9200:9200
     networks:
       - elastic
-    depends_on:
-      - es-warm
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health?local=true | grep -q '\"status\":\"green\"' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
 
   es-warm:
     image: elasticsearch:8.7.0
@@ -58,6 +54,12 @@ services:
         hard: 65536
     networks:
       - elastic
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health?local=true | grep -q '\"status\":\"green\"' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
 
   kibana:
     image: kibana:8.7.0
@@ -70,8 +72,10 @@ services:
     networks:
       - elastic
     depends_on:
-      - es-hot
-      - es-warm
+      es-hot:
+        condition: service_healthy
+      es-warm:
+        condition: service_healthy
 
   logstash:
     image: logstash:8.7.0
@@ -87,8 +91,10 @@ services:
     networks:
       - elastic
     depends_on:
-      - es-hot
-      - es-warm
+      es-hot:
+        condition: service_healthy
+      es-warm:
+        condition: service_healthy
 
   filebeat:
     image: elastic/filebeat:8.7.0
@@ -101,7 +107,8 @@ services:
       - /var/lib/docker:/var/lib/docker:Z
       - /var/run/docker.sock:/var/run/docker.sock:Z
     depends_on:
-      - logstash
+      logstash:
+        condition: service_started
     networks:
       - elastic
 
