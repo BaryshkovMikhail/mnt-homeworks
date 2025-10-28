@@ -55,3 +55,7 @@ Free Cloud account имеет ограничения:
 ## Решение 1
 
 ![img1](img/img1.png)
+
+## Решение 2
+
+![img2](img/img2.png)
